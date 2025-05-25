@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #0ff;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #0ff;
+      text-align: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1em;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 15px;
+    }
+    button {
+      background: #0ff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1.2em;
+      color: #000;
+      cursor: pointer;
+      border-radius: 6px;
+      width: 100%;
+    }
+    button:hover {
+      background: #0cc;
+    }
+    .status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Admin Panel</h1>
+
+  <p>Linkvertise URL:</p>
+  <input type="text" id="linkInput" placeholder="Paste Linkvertise URL" />
+
+  <p>Secret Code:</p>
+  <input type="text" id="codeInput" placeholder="Enter secret code" />
+
+  <p>Google Form Link:</p>
+  <input type="text" id="formInput" placeholder="Enter Google Form URL" />
+
+  <button id="saveBtn">Save</button>
+  <div class="status" id="status"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDl8NcvCBxO6UDLvp4JnjvMccwGYt9sBsQ",
+      authDomain: "giveawaylinkmanager.firebaseapp.com",
+      projectId: "giveawaylinkmanager",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const linkInput = document.getElementById('linkInput');
+    const codeInput = document.getElementById('codeInput');
+    const formInput = document.getElementById('formInput');
+    const saveBtn = document.getElementById('saveBtn');
+    const status = document.getElementById('status');
+
+    // Load current values
+    db.collection('settings').doc('dailyLink').get().then(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        linkInput.value = data.url || '';
+        codeInput.value = data.code || '';
+        formInput.value = data.form || '';
+      }
+    });
+
+    // Save new values
+    saveBtn.onclick = () => {
+      const url = linkInput.value.trim();
+      const code = codeInput.value.trim();
+      const form = formInput.value.trim();
+
+      if (!url || !code || !form) {
+        status.textContent = 'Please fill out all fields.';
+        status.style.color = '#f00';
+        return;
+      }
+
+      db.collection('settings').doc('dailyLink').set({ url, code, form })
+        .then(() => {
+          status.textContent = '✅ Saved successfully!';
+          status.style.color = '#0f0';
+        })
+        .catch(err => {
+          status.textContent = '❌ Error: ' + err.message;
+          status.style.color = '#f00';
+        });
+    };
+  </script>
+</body>
+</html>
