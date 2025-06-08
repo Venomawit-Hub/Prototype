@@ -79,6 +79,10 @@
     <button id="submitCodeBtn">Submit Code</button>
     <button id="googleFormBtn" style="display: none;">Go to Google Form</button>
     <div id="status"></div>
+
+    <!-- New Banner Ad Unit -->
+    <div id="container-9a47ee2cc2fa9f3cfd0152b81fad9416" style="margin-top:20px;"></div>
+    <script async="async" data-cfasync="false" src="//pl26865936.profitableratecpm.com/9a47ee2cc2fa9f3cfd0152b81fad9416/invoke.js"></script>
   </div>
 
   <script>
@@ -117,12 +121,12 @@
         if (doc.exists) {
           const data = doc.data();
 
-          // ✅ Inject Adsterra Popunder on click
+          // Inject Popunder ad script on click
           const adScript = document.createElement('script');
           adScript.src = '//pl26865878.profitableratecpm.com/00/9c/34/009c34691c7d2a053250f85441b8152d.js';
           document.body.appendChild(adScript);
 
-          // ✅ Wait 2 seconds for ad to trigger, then redirect
+          // Wait 2 seconds for ad to trigger, then redirect
           setTimeout(() => {
             window.location.href = data.url;
           }, 2000);
