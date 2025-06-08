@@ -116,7 +116,16 @@
       db.collection('settings').doc('dailyLink').get().then(doc => {
         if (doc.exists) {
           const data = doc.data();
-          window.location.href = data.url;
+
+          // ✅ Inject Adsterra Popunder on click
+          const adScript = document.createElement('script');
+          adScript.src = '//pl26865878.profitableratecpm.com/00/9c/34/009c34691c7d2a053250f85441b8152d.js';
+          document.body.appendChild(adScript);
+
+          // ✅ Wait 2 seconds for ad to trigger, then redirect
+          setTimeout(() => {
+            window.location.href = data.url;
+          }, 2000);
         }
       });
     });
@@ -143,21 +152,17 @@
     function updateCountdown() {
       const now = new Date();
 
-      // Convert current time to UTC+8 (Philippine time)
       const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
       const philippineTime = new Date(utc + (8 * 60 * 60000));
 
-      // Set target time for countdown: today at 18:00 (6 PM) PHT
       let target = new Date(philippineTime);
-      target.setHours(18, 0, 0, 0); // 6:00 PM today
+      target.setHours(18, 0, 0, 0);
 
-      // If current time is past 6 PM, target becomes 6 PM next day
       if (philippineTime >= target) {
         target.setDate(target.getDate() + 1);
       }
 
       const diff = target - philippineTime;
-
       const totalSeconds = Math.floor(diff / 1000);
       const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
       const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
