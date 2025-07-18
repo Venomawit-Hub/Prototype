@@ -1,0 +1,16 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f0f0f0;
+}
+
+video {
+  border: 3px solid #4caf50;
+  border-radius: 10px;
+}
+
+#result {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
