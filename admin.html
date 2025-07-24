@@ -1,149 +1,50 @@
 <!DOCTYPE html>
-<html lang="="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Roll 3 Color Dice</title>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <title>Admin - Dice Color Control</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #0a0f2c, #121b45);
-      margin: 0;
-      padding: 40px 20px;
+      font-family: Arial, sans-serif;
+      background: #101426;
+      color: white;
       text-align: center;
-      color: #e0eaff;
+      padding: 40px;
     }
 
     h1 {
-      font-size: 36px;
-      margin-bottom: 10px;
-      animation: fadeInSlide 1s ease-out;
-      color: #ffffff;
-      text-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+      color: #23d5ab;
     }
 
-    @keyframes fadeInSlide {
-      0% { opacity: 0; transform: translateY(-20px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    button {
-      background: linear-gradient(145deg, #23a6d5, #23d5ab);
-      color: white;
-      padding: 14px 30px;
-      font-size: 16px;
-      border: none;
-      border-radius: 12px;
+    .color-btn {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(35, 213, 171, 0.6);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-    }
-
-    button:hover:not(:disabled) {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(35, 213, 171, 0.9);
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .dice-container {
-      display: flex;
-      justify-content: center;
-      gap: 25px;
-      flex-wrap: wrap;
-      margin: 30px auto 15px;
-      min-height: 120px;
-    }
-
-    .die {
-      width: 110px;
-      height: 110px;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: bold;
+      border: none;
       color: white;
-      text-transform: uppercase;
-      background-color: var(--dice-color);
-      text-shadow: 0 0 6px rgba(0,0,0,0.4);
-      box-shadow: 0 0 15px var(--dice-color), 0 0 5px white inset;
-      border: 3px solid rgba(255,255,255,0.85);
-      animation: bounceIn 0.5s ease;
-      transition: transform 0.2s ease;
+      text-shadow: 1px 1px 2px black;
     }
 
-    .die:hover {
-      transform: scale(1.08) rotate(2deg);
+    .disabled {
+      opacity: 0.4;
+      border: 2px dashed white;
     }
 
-    @keyframes bounceIn {
-      0% { transform: scale(0.3); opacity: 0; }
-      60% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-
-    .results {
-      font-size: 18px;
-      margin-top: 15px;
-      font-weight: 500;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .results span {
-      font-weight: bold;
-      text-shadow: 0 0 6px #000;
-    }
-
-    .rolling {
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 30px;
-      color: white;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    @media (max-width: 600px) {
-      .die {
-        width: 80px;
-        height: 80px;
-        font-size: 16px;
-      }
+    .status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #ccc;
     }
   </style>
-</head>
-<body>
-  <h1>🎲 Roll 3 Color Dice</h1>
-  <button id="rollBtn" onclick="delayedRoll()">Roll Again</button>
 
-  <div class="rolling" id="rollingText" style="display:none;">Rolling...</div>
-  <div class="dice-container" id="dice"></div>
-  <div class="results" id="results"></div>
-
-  <audio id="rollSound" preload="auto">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2ce3e3dc89.mp3" type="audio/mp3">
-  </audio>
-
-  <!-- Firebase SDKs (modular) -->
+  <!-- Firebase v10 Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // ✅ Your Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBIxWI3kDUc2_-CP59YYmZUbVKqldF7zg4",
       authDomain: "roll-dice-db295.firebaseapp.com",
@@ -154,6 +55,7 @@
       measurementId: "G-1HB364ZGNH"
     };
 
+    // 🔥 Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -166,81 +68,53 @@
       { name: "Purple", hex: "#9b59b6" }
     ];
 
-    let enabledColors = [];
+    const colorButtons = document.getElementById("colorButtons");
+    const statusMsg = document.getElementById("statusMsg");
+    let disabledColors = {};
 
-    async function loadEnabledColors() {
-      const docRef = doc(db, "settings", "disabledColors");
-      const snap = await getDoc(docRef);
-
-      const disabled = snap.exists() ? snap.data() : {};
-      enabledColors = colors.filter(c => !disabled[c.name]);
-
-      if (enabledColors.length === 0) {
-        document.getElementById("results").innerHTML = `<span style="color: red;">All colors are disabled. Please enable some in admin.</span>`;
-        document.getElementById("rollBtn").disabled = true;
-      } else {
-        rollDice();
+    async function loadDisabledColors() {
+      const ref = doc(db, "settings", "disabledColors");
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        disabledColors = snap.data();
       }
+      renderButtons();
     }
 
-    function delayedRoll() {
-      const btn = document.getElementById("rollBtn");
-      const diceContainer = document.getElementById("dice");
-      const resultContainer = document.getElementById("results");
-      const rollingText = document.getElementById("rollingText");
-      const sound = document.getElementById("rollSound");
+    function renderButtons() {
+      colorButtons.innerHTML = "";
+      colors.forEach(color => {
+        const btn = document.createElement("button");
+        btn.className = "color-btn";
+        btn.textContent = color.name;
+        btn.style.backgroundColor = color.hex;
 
-      sound.currentTime = 0;
-      sound.play();
+        if (disabledColors[color.name]) {
+          btn.classList.add("disabled");
+        }
 
-      diceContainer.innerHTML = "";
-      resultContainer.textContent = "";
-      rollingText.style.display = "block";
-      btn.disabled = true;
+        btn.onclick = () => toggleColor(color.name);
+        colorButtons.appendChild(btn);
+      });
 
-      setTimeout(() => {
-        rollDice();
-        rollingText.style.display = "none";
-        btn.disabled = false;
-        confetti({
-          particleCount: 80,
-          spread: 80,
-          origin: { y: 0.6 },
-        });
-      }, 1000);
+      statusMsg.textContent = "Click a color to enable/disable it.";
     }
 
-    function rollDice() {
-      const diceContainer = document.getElementById("dice");
-      const resultContainer = document.getElementById("results");
-      diceContainer.innerHTML = "";
-      resultContainer.innerHTML = "";
+    async function toggleColor(colorName) {
+      const current = !!disabledColors[colorName];
+      disabledColors[colorName] = !current;
 
-      const colorCount = {};
-
-      for (let i = 0; i < 3; i++) {
-        const roll = enabledColors[Math.floor(Math.random() * enabledColors.length)];
-        colorCount[roll.name] = (colorCount[roll.name] || 0) + 1;
-
-        const die = document.createElement("div");
-        die.className = "die";
-        die.style.setProperty('--dice-color', roll.hex);
-        die.textContent = roll.name;
-        diceContainer.appendChild(die);
-      }
-
-      let summary = 'You rolled: ';
-      const parts = [];
-
-      for (const [color, count] of Object.entries(colorCount)) {
-        const hex = colors.find(c => c.name === color).hex;
-        parts.push(`<span style="color: ${hex}; text-shadow: 0 0 5px #000;">${count} ${color}${count > 1 ? 's' : ''}</span>`);
-      }
-
-      resultContainer.innerHTML = summary + parts.join(', ');
+      await setDoc(doc(db, "settings", "disabledColors"), disabledColors);
+      renderButtons();
+      statusMsg.textContent = `${colorName} is now ${disabledColors[colorName] ? "disabled" : "enabled"}.`;
     }
 
-    loadEnabledColors(); // Start with loading from Firebase
+    loadDisabledColors();
   </script>
+</head>
+<body>
+  <h1>🎮 Dice Color Admin Panel</h1>
+  <div id="colorButtons"></div>
+  <div class="status" id="statusMsg">Loading...</div>
 </body>
 </html>
