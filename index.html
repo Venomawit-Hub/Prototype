@@ -1,25 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roll 3 Color Dice</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    :root {
-      --bg-start: #0a0f2c;
-      --bg-end: #121b45;
-      --text: #e0eaff;
-    }
-
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, var(--bg-start), var(--bg-end));
+      background: linear-gradient(to bottom right, #0a0f2c, #121b45);
       margin: 0;
       padding: 40px 20px;
       text-align: center;
-      color: var(--text);
-      overflow-x: hidden;
+      color: #e0eaff;
     }
 
     h1 {
@@ -77,14 +70,12 @@
       font-weight: bold;
       color: white;
       text-transform: uppercase;
-      animation: bounceIn 0.5s ease;
-      transition: transform 0.2s ease;
       background-color: var(--dice-color);
       text-shadow: 0 0 6px rgba(0,0,0,0.4);
-      box-shadow:
-        0 0 15px var(--dice-color),
-        0 0 5px white inset;
+      box-shadow: 0 0 15px var(--dice-color), 0 0 5px white inset;
       border: 3px solid rgba(255,255,255,0.85);
+      animation: bounceIn 0.5s ease;
+      transition: transform 0.2s ease;
     }
 
     .die:hover {
@@ -148,7 +139,24 @@
     <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2ce3e3dc89.mp3" type="audio/mp3">
   </audio>
 
-  <script>
+  <!-- Firebase SDKs (modular) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBIxWI3kDUc2_-CP59YYmZUbVKqldF7zg4",
+      authDomain: "roll-dice-db295.firebaseapp.com",
+      projectId: "roll-dice-db295",
+      storageBucket: "roll-dice-db295.firebasestorage.app",
+      messagingSenderId: "234918610908",
+      appId: "1:234918610908:web:e75cae6459aae26ad13119",
+      measurementId: "G-1HB364ZGNH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const colors = [
       { name: "Red", hex: "#e74c3c" },
       { name: "Orange", hex: "#f39c12" },
@@ -158,13 +166,30 @@
       { name: "Purple", hex: "#9b59b6" }
     ];
 
+    let enabledColors = [];
+
+    async function loadEnabledColors() {
+      const docRef = doc(db, "settings", "disabledColors");
+      const snap = await getDoc(docRef);
+
+      const disabled = snap.exists() ? snap.data() : {};
+      enabledColors = colors.filter(c => !disabled[c.name]);
+
+      if (enabledColors.length === 0) {
+        document.getElementById("results").innerHTML = `<span style="color: red;">All colors are disabled. Please enable some in admin.</span>`;
+        document.getElementById("rollBtn").disabled = true;
+      } else {
+        rollDice();
+      }
+    }
+
     function delayedRoll() {
       const btn = document.getElementById("rollBtn");
       const diceContainer = document.getElementById("dice");
       const resultContainer = document.getElementById("results");
       const rollingText = document.getElementById("rollingText");
-
       const sound = document.getElementById("rollSound");
+
       sound.currentTime = 0;
       sound.play();
 
@@ -177,7 +202,6 @@
         rollDice();
         rollingText.style.display = "none";
         btn.disabled = false;
-
         confetti({
           particleCount: 80,
           spread: 80,
@@ -195,7 +219,7 @@
       const colorCount = {};
 
       for (let i = 0; i < 3; i++) {
-        const roll = colors[Math.floor(Math.random() * colors.length)];
+        const roll = enabledColors[Math.floor(Math.random() * enabledColors.length)];
         colorCount[roll.name] = (colorCount[roll.name] || 0) + 1;
 
         const die = document.createElement("div");
@@ -216,7 +240,7 @@
       resultContainer.innerHTML = summary + parts.join(', ');
     }
 
-    rollDice();
+    loadEnabledColors(); // Start with loading from Firebase
   </script>
 </body>
 </html>
