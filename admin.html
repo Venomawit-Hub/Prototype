@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin - Dice Color Control</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #101426;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #23d5ab;
+    }
+
+    .color-btn {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+    }
+
+    .disabled {
+      opacity: 0.4;
+      border: 2px dashed white;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #ccc;
+    }
+  </style>
+
+  <!-- Firebase v10 Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ✅ Your Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBIxWI3kDUc2_-CP59YYmZUbVKqldF7zg4",
+      authDomain: "roll-dice-db295.firebaseapp.com",
+      projectId: "roll-dice-db295",
+      storageBucket: "roll-dice-db295.firebasestorage.app",
+      messagingSenderId: "234918610908",
+      appId: "1:234918610908:web:e75cae6459aae26ad13119",
+      measurementId: "G-1HB364ZGNH"
+    };
+
+    // 🔥 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const colors = [
+      { name: "Red", hex: "#e74c3c" },
+      { name: "Orange", hex: "#f39c12" },
+      { name: "Yellow", hex: "#f1c40f" },
+      { name: "Green", hex: "#27ae60" },
+      { name: "Blue", hex: "#2980b9" },
+      { name: "Purple", hex: "#9b59b6" }
+    ];
+
+    const colorButtons = document.getElementById("colorButtons");
+    const statusMsg = document.getElementById("statusMsg");
+    let disabledColors = {};
+
+    async function loadDisabledColors() {
+      const ref = doc(db, "settings", "disabledColors");
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        disabledColors = snap.data();
+      }
+      renderButtons();
+    }
+
+    function renderButtons() {
+      colorButtons.innerHTML = "";
+      colors.forEach(color => {
+        const btn = document.createElement("button");
+        btn.className = "color-btn";
+        btn.textContent = color.name;
+        btn.style.backgroundColor = color.hex;
+
+        if (disabledColors[color.name]) {
+          btn.classList.add("disabled");
+        }
+
+        btn.onclick = () => toggleColor(color.name);
+        colorButtons.appendChild(btn);
+      });
+
+      statusMsg.textContent = "Click a color to enable/disable it.";
+    }
+
+    async function toggleColor(colorName) {
+      const current = !!disabledColors[colorName];
+      disabledColors[colorName] = !current;
+
+      await setDoc(doc(db, "settings", "disabledColors"), disabledColors);
+      renderButtons();
+      statusMsg.textContent = `${colorName} is now ${disabledColors[colorName] ? "disabled" : "enabled"}.`;
+    }
+
+    loadDisabledColors();
+  </script>
+</head>
+<body>
+  <h1>🎮 Dice Color Admin Panel</h1>
+  <div id="colorButtons"></div>
+  <div class="status" id="statusMsg">Loading...</div>
+</body>
+</html>
