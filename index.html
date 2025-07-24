@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -139,7 +139,7 @@
     <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2ce3e3dc89.mp3" type="audio/mp3">
   </audio>
 
-  <!-- Firebase SDKs (modular) -->
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -171,14 +171,17 @@
     async function loadEnabledColors() {
       const docRef = doc(db, "settings", "disabledColors");
       const snap = await getDoc(docRef);
-
       const disabled = snap.exists() ? snap.data() : {};
+
       enabledColors = colors.filter(c => !disabled[c.name]);
+
+      const btn = document.getElementById("rollBtn");
 
       if (enabledColors.length === 0) {
         document.getElementById("results").innerHTML = `<span style="color: red;">All colors are disabled. Please enable some in admin.</span>`;
-        document.getElementById("rollBtn").disabled = true;
+        btn.disabled = true;
       } else {
+        btn.disabled = false;
         rollDice();
       }
     }
@@ -209,6 +212,7 @@
         });
       }, 1000);
     }
+    window.delayedRoll = delayedRoll;
 
     function rollDice() {
       const diceContainer = document.getElementById("dice");
@@ -240,7 +244,7 @@
       resultContainer.innerHTML = summary + parts.join(', ');
     }
 
-    loadEnabledColors(); // Start with loading from Firebase
+    loadEnabledColors();
   </script>
 </body>
 </html>
